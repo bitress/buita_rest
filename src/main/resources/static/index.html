@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student</title>
+  <!-- Bootstrap link -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"></script>
+  <link href="https://cdn.jsdelivr.net/gh/hung1001/font-awesome-pro@4cac1a6/css/all.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+  <div class="container-fluid bg-primary px-3 py-2">
+    <h1 class="h4">Student</h1>
+  </div>
+  <main class="mt-5 pt-4 pl-2">
+    <div class="container">
+      <div class="row border card shadow">
+        <div class="col-md-12">
+
+          <div class="border border-secondary border-opacity-25 p-3 m-3 overflow-auto rounded">
+            <div class="row">
+              <div class="col-sm-6">
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-primary mb-2 text-nowrap" data-bs-toggle="modal"
+                  data-bs-target="#addModal">Add Student</button>
+              </div>
+            </div>
+
+            <!-- =========================================================================== -->
+            <table class="table table-striped table-bordered table-hover" id="studentTable">
+              <thead class="thead-dark">
+              <tr>
+                <th scope="col">Student ID</th>
+                <th scope="col">Student Name</th>
+                <th scope="col">Action</th>
+              </tr>
+              </thead>
+              <tbody id="myTable">
+              </tbody>
+            </table>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+
+  <!-- Modal for add -->
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Add Student</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="addForm">
+          <div class="modal-body">
+            <div class="mb-2">
+              <label class="form-label">ID</label>
+              <input type="text" name="id" id="id" class="form-control">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Student Name</label>
+              <input type="text" name="studentTitle" id="studentTitle" class="form-control">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" onclick="addstudent()">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for update student data -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Student</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="editForm">
+          <div class="modal-body">
+            <div class="mb-2">
+              <label class="form-label">ID</label>
+              <input type="text" name="id" id="id1" class="form-control" disabled>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Student Name</label>
+              <input type="text" name="studentTitle" id="studentTitle1" class="form-control">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" onclick="editstudent()">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      fetchstudents();
+
+      function fetchstudents() {
+        $.ajax({
+          type: 'GET',
+          url: '/student',
+          success: function (data) {
+            updateTable(data);
+          },
+          error: function () {
+            console.error('Error fetching data from the API');
+          },
+        });
+      }
+      
+      function updateTable(data) {
+        var tableBody = $('#studentTable tbody');
+        tableBody.empty();
+
+        $.each(data, function (index, student) {
+          var row = `<tr>
+                          <td>${student.id}</td>
+                          <td>${student.studentTitle}</td>
+                          <td class="d-flex align-items-center">
+                              <div class="btn-group">
+                                  <button class="editbtn btn btn-success py-1" data-bs-toggle="modal" data-bs-target="#editModal" onclick="getIdtoEdit('${student.id}')"><i class="far fa-pencil"></i></button>
+                                  <button class="btn btn-danger py-1" type="submit" name="delete_student" onclick="deletestudent('${student.id}')"><i class="far fa-trash"></i></button>
+                              </div>
+                          </td>
+                      </tr>`;
+
+          tableBody.append(row);
+        })
+      }
+
+    });
+
+    function addstudent() {
+      var formData = {
+        id: $('#id').val(),
+        studentTitle: $('#studentTitle').val()
+      };
+
+      $.ajax({
+        type: 'POST',
+        url: 'student/add',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function (response) {
+          fetchstudents();
+          console.log('student added successfully:', response);
+          alert("Insert Success!");
+          $('#id').val('');
+          $('#studentTitle').val('');
+          $('#addModal').modal('hide');
+        },
+        error: function (error) {
+          console.error('Error adding student:', error);
+          alert("Insert Error!");
+        }
+      });
+    }
+
+    // Function to delete a student
+    function deletestudent(id) {
+      // Use your server endpoint to delete a student
+      $.ajax({
+        url: `student/${id}`,
+        method: 'DELETE',
+        success: function () {
+          fetchstudents();
+        },
+        error: function (error) {
+          console.error('Error deleting student:', error);
+        }
+      });
+    }
+    
+    // get Id to edit
+    function getIdtoEdit(id) {
+		$('#id1').val(id);
+	}
+
+	// function for edit a student
+	  function editstudent() {
+	        var formData = {
+	            id: $('#id1').val(),
+	            studentTitle: $('#studentTitle1').val(),
+	        };
+
+	        $.ajax({
+	            type: 'PUT',
+	            url: '/student/' + formData.id,
+	            contentType: 'application/json',
+	            data: JSON.stringify(formData),
+	            success: function (response) {
+	                console.log('Student updated successfully:', response);
+	                alert("Update Success!");
+	                $('#id1').val('');
+	                 $('#studentTitle1').val('');
+	                  $('#editModal').modal('hide');
+	            },
+	            error: function (error) {
+	                console.error('Error updating student:', error);
+	                alert("Update Error!");
+	            }
+	        });
+	    }
+  </script>
+
+</body>
+
+</html>
